@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quit</title>
+<meta name="description" content="Quit bad habits. Your goal photo fills with colour for every clean day.">
+<meta name="theme-color" content="#0c0a11">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+html{height:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Layout: one narrow column of tall photo cards. Each photo sits dark and colourless, and its colour rises from the bottom as clean days pass. */
+:root{
+  color-scheme: dark;
+  --night:#0c0a11;
+  --surface:#16131d;
+  --raised:#201c2a;
+  --line:#2c2738;
+  --text:#efeaf5;
+  --muted:#958ca6;
+  --ember:#ff8f66;
+  --ember-soft:#ffb899;
+  --iris:#a98bff;
+  --danger:#ff6b7d;
+  --on-ember:#22100a;
+  --scrim:rgba(8,6,12,.82);
+  --scrim-0:rgba(8,6,12,0);
+  --glow:rgba(255,143,102,.55);
+  --font-body:"Geist","Helvetica Neue",Arial,sans-serif;
+  --font-display:"Bricolage Grotesque","Geist","Helvetica Neue",sans-serif;
+  --font-serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --r-card:28px;
+  --r-ctl:14px;
+}
+html,body{background:var(--night)}
+body{
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  padding-block:20px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background:
+    radial-gradient(60rem 30rem at 85% -10%, rgba(169,139,255,.13), transparent 60%),
+    radial-gradient(40rem 26rem at 0% 10%, rgba(255,143,102,.09), transparent 60%),
+    var(--night);
+  background-attachment:fixed;
+  min-height:100%;
+  -webkit-font-smoothing:antialiased;
+}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--iris);outline-offset:2px}
+.app{max-width:440px;margin-inline:auto;display:flex;flex-direction:column;gap:20px}
+
+/* header */
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mark{font-family:var(--font-display);font-weight:800;font-size:34px;letter-spacing:-.05em;line-height:1}
+.mark i{font-style:normal;color:var(--ember)}
+.tag{margin:0;font-family:var(--font-serif);font-style:italic;font-size:25px;line-height:1.15;letter-spacing:-.01em;max-width:20ch;text-wrap:balance}
+.tag em{font-style:italic;color:var(--ember-soft)}
+.add{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ember);color:var(--on-ember);
+  font-weight:600;font-size:14px;
+  padding:10px 16px;border-radius:999px;
+  box-shadow:0 6px 24px -8px var(--glow);
+}
+.add:active{transform:scale(.97)}
+.add span{font-size:18px;line-height:1}
+
+/* cards */
+.list{display:flex;flex-direction:column;gap:26px}
+.card{display:flex;flex-direction:column;gap:14px}
+.photo{
+  position:relative;aspect-ratio:4/5;max-width:100%;
+  border-radius:var(--r-card);overflow:hidden;
+  background:var(--surface);
+  box-shadow:0 0 0 1px var(--line), 0 30px 60px -30px rgba(0,0,0,.8);
+  isolation:isolate;
+}
+.layer{position:absolute;inset:0}
+.layer img{width:100%;height:100%;object-fit:cover;display:block}
+.layer .art{
+  width:100%;height:100%;
+  background:
+    radial-gradient(circle at 70% 28%, var(--ember-soft) 0 9%, transparent 9.5%),
+    radial-gradient(90% 60% at 70% 30%, rgba(255,143,102,.8), transparent 70%),
+    linear-gradient(200deg, #6f4bd8 0%, #c2557e 45%, #2a1846 100%);
+}
+.base{filter:grayscale(1) brightness(.34) contrast(1.1)}
+.color{clip-path:inset(100% 0 0 0);transition:clip-path 1s linear}
+.level{
+  position:absolute;inset-inline:0;bottom:0;height:0;z-index:2;
+  transition:bottom 1s linear;pointer-events:none;
+}
+.level::before{
+  content:"";position:absolute;inset-inline:0;top:-1px;height:2px;
+  background:linear-gradient(90deg, transparent, var(--ember-soft) 20%, var(--ember) 50%, var(--ember-soft) 80%, transparent);
+  box-shadow:0 0 18px 3px var(--glow);
+}
+.level b{
+  position:absolute;left:14px;bottom:8px;
+  font-family:var(--font-display);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:var(--ember);color:var(--on-ember);
+  padding:2px 9px;border-radius:999px;
+}
+.photo::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg, var(--scrim) 0%, var(--scrim-0) 26%, var(--scrim-0) 46%, var(--scrim) 100%);
+}
+.over{position:absolute;inset-inline:0;z-index:3;padding:18px 20px;display:flex;gap:12px}
+.over.top{top:0;align-items:flex-start;justify-content:space-between}
+.over.bot{bottom:0;align-items:flex-end;justify-content:space-between}
+.habit{min-width:0}
+.eyebrow{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:500;margin-bottom:3px}
+.habit strong{display:block;font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere}
+.goal{min-width:0;flex:1}
+.goal strong{display:block;font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:28px;line-height:1.05;letter-spacing:-.01em;overflow-wrap:anywhere}
+.count{text-align:right;flex:none;line-height:1}
+.count .n{font-family:var(--font-display);font-size:92px;font-weight:800;letter-spacing:-.06em;line-height:.82;font-variant-numeric:tabular-nums;display:block;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.count .of{display:block;margin-top:8px;font-size:12px;color:var(--ember-soft);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.x{
+  flex:none;width:34px;height:34px;border-radius:50%;
+  background:rgba(22,19,29,.6);color:var(--muted);font-size:18px;line-height:1;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.x:hover{color:var(--text)}
+.badge{
+  font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:999px;
+  background:rgba(22,19,29,.7);color:var(--ember-soft);border:1px solid var(--line);
+}
+.card.done .photo{box-shadow:0 0 0 1.5px var(--ember), 0 0 70px -12px var(--glow)}
+.card.done .level{display:none}
+
+/* ticks: one per day */
+.ticks{display:flex;gap:3px}
+.ticks i{flex:1;height:5px;border-radius:3px;background:var(--raised);min-width:0}
+.ticks i.on{background:var(--ember)}
+.ticks i.now{background:linear-gradient(90deg,var(--iris),var(--raised));animation:pulse 2.4s ease-in-out infinite}
+.bar{height:5px;border-radius:3px;background:var(--raised);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ember);border-radius:3px;width:0}
+@keyframes pulse{50%{opacity:.45}}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.clock{min-width:0}
+.clock .t{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.clock .s{display:block;font-size:12.5px;color:var(--muted)}
+.btn{
+  padding:10px 16px;border-radius:var(--r-ctl);font-weight:500;font-size:14px;
+  background:var(--raised);border:1px solid var(--line);
+}
+.btn:hover{border-color:var(--muted)}
+.btn.slip{color:var(--danger)}
+.btn.go{background:var(--ember);color:var(--on-ember);border-color:transparent;font-weight:600}
+.btn.hot{background:var(--danger);color:var(--on-ember);border-color:transparent;font-weight:600}
+.ask{
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:12px;
+}
+.ask p{margin:0;font-size:14px}
+.ask div{display:flex;gap:8px;flex-wrap:wrap}
+
+/* empty / loading */
+.empty{display:flex;flex-direction:column;gap:18px}
+.empty .note{
+  border:1px dashed var(--line);border-radius:20px;padding:18px;
+  display:flex;flex-direction:column;gap:12px;align-items:flex-start;
+}
+.empty h2{margin:0;font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance}
+.empty p{margin:0;color:var(--muted);font-size:14px}
+.ghost{opacity:.55;text-align:center;color:var(--muted);padding:60px 0}
+
+/* sheet */
+.veil{
+  position:fixed;inset:0;z-index:50;background:rgba(5,4,8,.72);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.sheet{
+  width:100%;max-width:472px;max-height:100%;overflow-y:auto;
+  background:var(--surface);border:1px solid var(--line);border-bottom:0;
+  border-radius:28px 28px 0 0;
+  padding:22px;
+  padding-left:max(22px, env(safe-area-inset-left, 0px));
+  padding-right:max(22px, env(safe-area-inset-right, 0px));
+  padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px));
+  display:flex;flex-direction:column;gap:18px;
+  animation:rise .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes rise{from{transform:translateY(40px);opacity:0}}
+@media (min-width:600px){.veil{align-items:center;padding:24px}.sheet{border-radius:28px;border-bottom:1px solid var(--line)}}
+.sheet h2{margin:0;font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:32px;line-height:1.05;letter-spacing:-.01em}
+.f{display:flex;flex-direction:column;gap:7px}
+.f label,.f .lab{font-size:10.5px;color:var(--muted);font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+.f input[type=text],.f input[type=number]{
+  width:100%;background:var(--night);border:1px solid var(--line);border-radius:var(--r-ctl);
+  padding:12px 14px;font-size:15px;
+}
+.f input::placeholder{color:#5f5770}
+.days{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{
+  padding:8px 14px;border-radius:999px;background:var(--night);border:1px solid var(--line);
+  font-family:var(--font-display);font-weight:500;font-size:14px;font-variant-numeric:tabular-nums;
+}
+.chip[aria-pressed=true]{background:var(--ember);color:var(--on-ember);border-color:transparent;font-weight:700}
+.days input{width:92px !important;text-align:center}
+.pick{
+  position:relative;display:flex;align-items:center;justify-content:center;text-align:center;
+  aspect-ratio:16/9;max-width:100%;border-radius:18px;overflow:hidden;
+  border:1px dashed var(--line);background:var(--night);color:var(--muted);cursor:pointer;
+}
+.pick span{font-size:14px;letter-spacing:0;text-transform:none}
+.pick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pick:focus-within{outline:2px solid var(--iris);outline-offset:2px}
+.err{color:var(--danger);font-size:13px;margin:0}
+.acts{display:flex;gap:10px}
+.acts .btn{flex:1;padding:13px 16px;font-size:15px}
+
+.toast{
+  position:fixed;z-index:60;inset-inline:0;margin-inline:auto;width:max-content;max-width:calc(100% - 32px);
+  bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+  background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14px;
+  box-shadow:0 12px 40px -10px rgba(0,0,0,.8);
+}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin:0}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="head">
+    <div class="mark">quit<i>.</i></div>
+    <button class="add" id="addBtn" type="button"><span aria-hidden="true">+</span>New habit</button>
+  </header>
+  <p class="tag">Every clean day brings your goal <em>into colour.</em></p>
+
+  <main class="list" id="list" aria-live="polite">
+    <div class="ghost">Loading your habits…</div>
+  </main>
+  <p class="foot" id="foot" hidden></p>
+</div>
+
+<div class="veil" id="veil" hidden>
+  <form class="sheet" id="form" novalidate>
+    <h2>What are you quitting?</h2>
+    <div class="f">
+      <label for="fName">Bad habit</label>
+      <input type="text" id="fName" maxlength="40" placeholder="Smoking, sugar, late-night scrolling" autocomplete="off">
+    </div>
+    <div class="f">
+      <span class="lab" id="daysLab">Days to stay clean</span>
+      <div class="days" role="group" aria-labelledby="daysLab">
+        <button type="button" class="chip" data-d="7">7</button>
+        <button type="button" class="chip" data-d="14">14</button>
+        <button type="button" class="chip" data-d="20">20</button>
+        <button type="button" class="chip" data-d="30">30</button>
+        <button type="button" class="chip" data-d="90">90</button>
+        <input type="number" id="fDays" min="1" max="365" inputmode="numeric" value="20" aria-label="Number of days">
+      </div>
+    </div>
+    <div class="f">
+      <label for="fGoal">The goal you earn</label>
+      <input type="text" id="fGoal" maxlength="50" placeholder="New headphones, a trip to the coast" autocomplete="off">
+    </div>
+    <div class="f">
+      <span class="lab">Goal photo</span>
+      <label class="pick" id="pick">
+        <img id="fPrev" alt="" hidden>
+        <span id="pickTxt">Choose a photo of your goal</span>
+        <input type="file" id="fFile" accept="image/*" aria-label="Choose a goal photo">
+      </label>
+    </div>
+    <p class="err" id="fErr" hidden></p>
+    <div class="acts">
+      <button type="button" class="btn" id="fCancel">Cancel</button>
+      <button type="submit" class="btn go" id="fSave">Start now</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+  document.documentElement.lang = "en";
+  var DAY = 86400000, LS = "quit.v1";
+  var $ = function(id){ return document.getElementById(id); };
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function days(n){ return n + (n === 1 ? " day" : " days"); }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  var state = { ready:false, mode:"local", habits:[], photos:{}, ask:null };
+  var col = null, draftImg = null, toastT = 0;
+
+  function toast(msg){
+    var t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, 3200);
+  }
+
+  /* ---------- storage ---------- */
+  function loadLocal(){
+    try {
+      var d = JSON.parse(localStorage.getItem(LS) || "null");
+      if (d && Array.isArray(d.habits)) { state.habits = d.habits; state.photos = d.photos || {}; }
+    } catch(e){}
+  }
+  function saveLocal(){
+    try { localStorage.setItem(LS, JSON.stringify({ habits: state.habits, photos: state.photos })); return true; }
+    catch(e){ toast("Browser storage is full. That change was not saved."); return false; }
+  }
+  function startLocal(note){
+    state.mode = "local"; loadLocal(); state.ready = true; render();
+    if (note) { $("foot").textContent = note; $("foot").hidden = false; }
+  }
+  function habitDoc(h){
+    return { kind:"habit", name:h.name, goal:h.goal, days:h.days, startAt:h.startAt, createdAt:h.createdAt, best:h.best || 0, slips:h.slips || 0 };
+  }
+  async function putHabit(h, img){
+    if (state.mode === "db") {
+      try {
+        if (img) await col.doc("p_" + h.id).set({ kind:"photo", img: img });
+        await col.doc("h_" + h.id).set(habitDoc(h));
+      } catch(e){ toast(e && e.code === "quota_exceeded" ? "Storage is full." : "Couldn't save. Try again."); return false; }
+      return true;
+    }
+    var i = state.habits.findIndex(function(x){ return x.id === h.id; });
+    if (i < 0) state.habits.push(h); else state.habits[i] = h;
+    if (img) state.photos[h.id] = img;
+    var ok = saveLocal(); render(); return ok;
+  }
+  async function dropHabit(id){
+    if (state.mode === "db") {
+      try { await col.doc("h_" + id).delete(); await col.doc("p_" + id).delete(); }
+      catch(e){ toast("Couldn't delete. Try again."); }
+      return;
+    }
+    state.habits = state.habits.filter(function(x){ return x.id !== id; });
+    delete state.photos[id]; saveLocal(); render();
+  }
+
+  async function boot(){
+    var use = window.claude && window.claude.use;
+    if (!use) { startLocal(""); return; }
+    var db = null, uid = null;
+    try {
+      var r = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      db = r[0]; if (r[1]) uid = await r[1].id();
+    } catch(e){}
+    if (!db || !uid) { startLocal("Your habits are kept in this browser only."); return; }
+    state.mode = "db";
+    col = db.collection("data/users/" + uid);
+    var slow = setTimeout(function(){
+      if (!state.ready) $("list").innerHTML = '<div class="ghost">Can\'t reach your saved habits yet. Check your connection.</div>';
+    }, 10000);
+    col.onSnapshot(function(snap){
+      var hs = [], ps = {};
+      snap.docs.forEach(function(d){
+        var v = d.data(); if (!v) return;
+        if (v.kind === "habit") hs.push(Object.assign({}, v, { id: d.id.slice(2) }));
+        else if (v.kind === "photo") ps[d.id.slice(2)] = v.img;
+      });
+      hs.sort(function(a,b){ return (a.createdAt||0) - (b.createdAt||0); });
+      state.habits = hs; state.photos = ps;
+      if (!snap.metadata.fromCache || hs.length) { clearTimeout(slow); state.ready = true; }
+      if (state.ready) render();
+    }, function(){
+      clearTimeout(slow); state.ready = true; render();
+      toast("Lost connection to your saved habits. Reopen the page.");
+    });
+  }
+
+  /* ---------- render ---------- */
+  function calc(h, now){
+    var el = Math.max(0, now - h.startAt), total = h.days * DAY;
+    var p = Math.min(1, el / total);
+    return { el: el, p: p, d: Math.floor(el / DAY), done: p >= 1 };
+  }
+  function layers(){
+    return '<div class="layer base"><img alt="" hidden><div class="art"></div></div>' +
+           '<div class="layer color"><img alt="" hidden><div class="art"></div></div>' +
+           '<div class="level"><b></b></div>';
+  }
+  function ticksHtml(n){
+    if (n > 45) return '<div class="bar"><i></i></div>';
+    var s = '<div class="ticks">'; for (var i = 0; i < n; i++) s += "<i></i>"; return s + "</div>";
+  }
+  function cardHtml(h){
+    var ask = state.ask && state.ask.id === h.id ? state.ask.type : null, foot;
+    if (ask === "slip") {
+      foot = '<div class="ask"><p>It happens. The count goes back to zero and the photo goes dark again.</p>' +
+        '<div><button type="button" class="btn hot" data-act="slip-yes">Yes, start over</button>' +
+        '<button type="button" class="btn" data-act="no">No, still clean</button></div></div>';
+    } else if (ask === "del") {
+      foot = '<div class="ask"><p>“' + esc(h.name) + '” will be deleted for good, with its photo and record.</p>' +
+        '<div><button type="button" class="btn hot" data-act="del-yes">Delete</button>' +
+        '<button type="button" class="btn" data-act="no">Keep it</button></div></div>';
+    } else {
+      foot = '<div class="row"><div class="clock"><span class="t"></span><span class="s"></span></div>' +
+        '<button type="button" class="btn slip" data-act="slip">I slipped</button></div>';
+    }
+    return '<article class="card" data-id="' + esc(h.id) + '">' +
+      '<div class="photo">' + layers() +
+        '<div class="over top"><div class="habit"><span class="eyebrow">Quitting</span><strong>' + esc(h.name) + '</strong></div>' +
+          '<button type="button" class="x" data-act="del" aria-label="Delete ' + esc(h.name) + '">×</button></div>' +
+        '<div class="over bot"><div class="goal"><span class="eyebrow gl">Goal</span><strong>' + esc(h.goal || "A better me") + '</strong></div>' +
+          '<div class="count"><span class="n"></span><span class="of">of ' + days(h.days) + '</span></div></div>' +
+      '</div>' + ticksHtml(h.days) + foot + '</article>';
+  }
+  function sampleHtml(){
+    return '<article class="card" aria-label="Example">' +
+      '<div class="photo">' + layers().replace('class="layer color"', 'class="layer color" style="clip-path:inset(60% 0 0 0)"').replace('class="level"', 'class="level" style="bottom:40%"').replace("<b></b>", "<b>40%</b>") +
+        '<div class="over top"><div class="habit"><span class="eyebrow">Quitting</span><strong>Smoking</strong></div><span class="badge">Example</span></div>' +
+        '<div class="over bot"><div class="goal"><span class="eyebrow">Goal</span><strong>Sunset on the coast</strong></div>' +
+          '<div class="count"><span class="n">8</span><span class="of">of 20 days</span></div></div>' +
+      '</div><div class="ticks">' + new Array(9).join('<i class="on"></i>') + '<i class="now"></i>' + new Array(12).join("<i></i>") + '</div></article>';
+  }
+  function render(){
+    var list = $("list");
+    if (!state.habits.length) {
+      list.innerHTML = '<div class="empty"><div class="note"><h2>Name your first habit and add a photo of your goal.</h2>' +
+        '<p>The photo starts dark and colourless. Colour rises from the bottom each day you stay clean, and it is complete on the last day.</p>' +
+        '<button type="button" class="btn go" data-act="new">Get started</button></div>' + sampleHtml() + '</div>';
+      return;
+    }
+    list.innerHTML = state.habits.map(cardHtml).join("");
+    state.habits.forEach(function(h){
+      var img = state.photos[h.id]; if (!img) return;
+      var card = list.querySelector('[data-id="' + h.id + '"]'); if (!card) return;
+      card.querySelectorAll(".layer").forEach(function(l){
+        var im = l.querySelector("img"); im.src = img; im.hidden = false; l.querySelector(".art").hidden = true;
+      });
+    });
+    tick();
+  }
+  function tick(){
+    var now = Date.now(), list = $("list");
+    state.habits.forEach(function(h){
+      var card = list.querySelector('[data-id="' + h.id + '"]'); if (!card) return;
+      var c = calc(h, now), pct = Math.floor(c.p * 100);
+      card.classList.toggle("done", c.done);
+      card.querySelector(".color").style.clipPath = "inset(" + ((1 - c.p) * 100).toFixed(3) + "% 0 0 0)";
+      var lv = card.querySelector(".level"); lv.style.bottom = (c.p * 100).toFixed(3) + "%";
+      lv.firstChild.textContent = pct + "%";
+      card.querySelector(".count .n").textContent = c.d;
+      card.querySelector(".gl").textContent = c.done ? "Goal reached" : "Goal";
+      var tk = card.querySelectorAll(".ticks i");
+      if (tk.length) tk.forEach(function(el, i){ el.className = i < c.d ? "on" : (i === c.d ? "now" : ""); });
+      else { var b = card.querySelector(".bar i"); if (b) b.style.width = (c.p * 100).toFixed(2) + "%"; }
+      var t = card.querySelector(".clock .t");
+      if (t) {
+        var r = c.el % DAY, hh = Math.floor(r / 3600000), mm = Math.floor(r % 3600000 / 60000), ss = Math.floor(r % 60000 / 1000);
+        t.textContent = c.d + "d " + pad(hh) + ":" + pad(mm) + ":" + pad(ss);
+        var s;
+        if (c.done) s = "You made it. This one is yours now.";
+        else {
+          var left = Math.ceil((h.days * DAY - c.el) / DAY);
+          s = days(left) + " to go";
+          if (h.slips) s += " · best streak " + days(Math.floor(Math.max(h.best || 0, c.el) / DAY));
+        }
+        card.querySelector(".clock .s").textContent = s;
+      }
+    });
+  }
+  setInterval(tick, 1000);
+
+  /* ---------- actions ---------- */
+  $("list").addEventListener("click", function(e){
+    var b = e.target.closest("[data-act]"); if (!b) return;
+    var act = b.dataset.act;
+    if (act === "new") { openSheet(); return; }
+    var card = b.closest("[data-id]"); if (!card) return;
+    var id = card.dataset.id, h = state.habits.find(function(x){ return x.id === id; }); if (!h) return;
+    if (act === "slip" || act === "del") { state.ask = { id:id, type:act }; render(); }
+    else if (act === "no") { state.ask = null; render(); }
+    else if (act === "slip-yes") {
+      var now = Date.now(), n = Object.assign({}, h, { best: Math.max(h.best || 0, now - h.startAt), slips: (h.slips || 0) + 1, startAt: now });
+      state.ask = null; putHabit(n, null).then(function(){ if (state.mode === "db") render(); });
+      toast("Restarted. Day one begins now.");
+    }
+    else if (act === "del-yes") { state.ask = null; dropHabit(id); }
+  });
+
+  /* ---------- new habit sheet ---------- */
+  function syncChips(){
+    var v = String(parseInt($("fDays").value, 10));
+    document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c.dataset.d === v ? "true" : "false"); });
+  }
+  function openSheet(){
+    $("form").reset(); draftImg = null;
+    $("fPrev").hidden = true; $("fPrev").removeAttribute("src");
+    $("pickTxt").hidden = false; $("fErr").hidden = true; $("fDays").value = 20; syncChips();
+    $("veil").hidden = false; $("fName").focus();
+  }
+  function closeSheet(){ $("veil").hidden = true; $("addBtn").focus(); }
+  $("addBtn").addEventListener("click", openSheet);
+  $("fCancel").addEventListener("click", closeSheet);
+  $("veil").addEventListener("click", function(e){ if (e.target === $("veil")) closeSheet(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("veil").hidden) closeSheet(); });
+  document.querySelectorAll(".chip").forEach(function(c){
+    c.addEventListener("click", function(){ $("fDays").value = c.dataset.d; syncChips(); });
+  });
+  $("fDays").addEventListener("input", syncChips);
+
+  function shrink(file){
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onerror = rej;
+      fr.onload = function(){
+        var im = new Image();
+        im.onerror = rej;
+        im.onload = function(){
+          var max = 880, q = 0.8, out = "";
+          for (var k = 0; k < 6; k++) {
+            var sc = Math.min(1, max / Math.max(im.width, im.height));
+            var cv = document.createElement("canvas");
+            cv.width = Math.max(1, Math.round(im.width * sc)); cv.height = Math.max(1, Math.round(im.height * sc));
+            cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+            out = cv.toDataURL("image/jpeg", q);
+            if (out.length < 225000) break;
+            max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.08);
+          }
+          if (out.length >= 250000) rej(new Error("big")); else res(out);
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  $("fFile").addEventListener("change", function(){
+    var f = this.files && this.files[0]; if (!f) return;
+    shrink(f).then(function(d){
+      draftImg = d; $("fPrev").src = d; $("fPrev").hidden = false; $("pickTxt").hidden = true; $("fErr").hidden = true;
+    }).catch(function(){
+      $("fErr").textContent = "That photo couldn't be opened. Choose another JPG or PNG."; $("fErr").hidden = false;
+    });
+  });
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = $("fName").value.trim(), n = parseInt($("fDays").value, 10), err = "";
+    if (!name) err = "Name the habit you want to quit.";
+    else if (!(n >= 1 && n <= 365)) err = "Days must be between 1 and 365.";
+    if (err) { $("fErr").textContent = err; $("fErr").hidden = false; return; }
+    var now = Date.now();
+    var h = { id: now.toString(36) + Math.random().toString(36).slice(2, 6), name: name, goal: $("fGoal").value.trim(), days: n, startAt: now, createdAt: now, best: 0, slips: 0 };
+    $("fSave").disabled = true;
+    putHabit(h, draftImg).then(function(ok){
+      $("fSave").disabled = false;
+      if (ok) { closeSheet(); toast("Started. Day one begins now."); }
+    });
+  });
+
+  boot();
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+</script>
+</body>
+</html>
